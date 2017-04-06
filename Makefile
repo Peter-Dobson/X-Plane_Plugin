@@ -57,7 +57,7 @@ endif
 
 
 
-all: linktest TeensyControls.xpl copy
+all: linktest TeensyControls.xpl
 
 OBJS = TeensyControls.o printf.o usb.o memory.o io.o display.o thread.o
 
@@ -68,10 +68,10 @@ TeensyControls.xpl: $(OBJS)
 linktest: linktest.o $(OBJS)
 	$(CC) $(LDFLAGS) linktest.o $(OBJS) -o linktest $(LIBS)
 
-copy:
-ifeq ($(OS), WINDOWS)
-	./cp_win32.sh TeensyControls.xpl
-endif
+#copy:
+#ifeq ($(OS), WINDOWS)
+#	./cp_win32.sh TeensyControls.xpl
+#endif
 
 %.o: %.c TeensyControls.h Makefile
 	$(CC) $(CFLAGS) -c $<

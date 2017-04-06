@@ -98,6 +98,13 @@ int XPLMGetDatavf(XPLMDataRef inDataRef, float *outValues, int inOffset, int inM
 void XPLMSetDatavf(XPLMDataRef inDataRef, float *inValues, int inoffset, int inCount) {
 }
 
+int XPLMGetDatab(XPLMDataRef inDataRef, void *outValue /* Can be NULL */, int inOffset, int inMaxBytes) {
+	return 0;
+}
+
+void XPLMSetDatab(XPLMDataRef inDataRef, void *inValue /* Can be NULL */, int inOffset, int inLength) {
+}
+
 XPLMMenuID XPLMFindPluginsMenu(void) {
 	return 0;
 }

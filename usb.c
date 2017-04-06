@@ -710,7 +710,6 @@ static void output_thread(void *arg)
 {
 	teensy_t *t = (teensy_t *)arg;
 	uint8_t buf[65];
-	int r;
 	DWORD n;
 	BOOL ret;
 
@@ -752,7 +751,7 @@ static void output_thread(void *arg)
 			if (t->output_head == t->output_tail) {
 				//printf("output_thread, begin wait\n");
 				t->output_thread_waiting = 1;
-				r = pthread_cond_wait_timeout(&t->output_event,
+				pthread_cond_wait_timeout(&t->output_event,
 					&t->output_mutex, 1000);
 				t->output_thread_waiting = 0;
 				//printf("output_thread, r: %d, errno: %d\n", r, errno);
@@ -790,7 +789,7 @@ int TeensyControls_usb_init(void)
 	window.lpszClassName = name;
 	if (!RegisterClass(&window)) return 0; // unable to register notification window
 	hWnd = CreateWindow(name, NULL, 0, 50, 50, 50, 50, NULL, NULL, NULL, NULL);
-	printf("hWnd = %ld\n", (long)hWnd);
+	printf("hWnd = %p\n", hWnd);
 	if (!hWnd) return 0; // unable to create notification window
 	//ShowWindow(hWnd, SW_SHOWNORMAL);
 	//UpdateWindow(hWnd);

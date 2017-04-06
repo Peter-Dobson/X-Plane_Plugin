@@ -118,7 +118,7 @@ int TeensyControls_printf(const char *format, ...)
 				// determine whether connect() completed successfully
 				// (SO_ERROR is zero) or unsuccessfully
 				slen = sizeof(i);
-				if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &i, &slen) || i != 0) {
+				if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &i, &slen) || i != 0) {
 					goto fail;
 				}
 				sock_connecting = 0;

@@ -263,6 +263,15 @@ void TeensyControls_update_xplane(float elapsed)
 				} else if (item->datatype & xplmType_FloatArray) {
 					f = (float)(item->intval);
 					XPLMSetDatavf(item->dataref, &f, item->index, 1);
+				} else if (item->datatype & xplmType_Data) {
+					// Get array length
+					int arrLength = XPLMGetDatab(item->dataref, NULL, 0,0);
+					int maxLength = arrLength - item->index + 1;
+					if (maxLength>0) {
+						int length = maxLength > 4 ? 4 : maxLength;
+						i = item->intval;
+						XPLMSetDatab(item->dataref, &i, item->index, length);
+					}
 				}
 			} else if (item->type == 2 && item->changed_by_teensy) {
 				item->changed_by_teensy = 0;
@@ -305,7 +314,22 @@ void TeensyControls_update_xplane(float elapsed)
 				} else if (item->datatype & xplmType_FloatArray) {
 					XPLMGetDatavf(item->dataref, &f, item->index, 1);
 					item->intval = (int32_t)f;
-				} else break;
+				} else if (item->datatype & xplmType_Data) {
+					// get array length first
+					int arrLength = XPLMGetDatab(item->dataref, NULL, 0, 0);
+					int maxLength = arrLength - item->index + 1;
+					if (maxLength>=0) {
+						int length=(maxLength > 4 ? 4 : maxLength);
+						i = (int) item->intval;
+						XPLMGetDatab(item->dataref, &i, item->index, length);
+						item->intval = (int32_t) i;
+//						printf("dataref: %x, index OK, requested: %d, arrLength: %d, length: %d, value: %x\n", item->dataref, item->index, arrLength, length, i);
+					} else {
+//						printf("dataref: %x, index out of bounds, requested: %d, length: %d\n", item->dataref, item->index, arrLength);
+						item->intval = 0;
+					}
+				} 
+				else break;
 				if (item->intval != item->intval_remote) {
 					printf("change: %s = %d\n", item->name, item->intval);
 					display("Update %s = %d", item->name, item->intval);
@@ -335,6 +359,43 @@ void TeensyControls_update_xplane(float elapsed)
 					printf("change: %s = %f\n", item->name, item->floatval);
 					display("Update %s = %f", item->name, item->floatval);
 				}
+				break;
+			case 0x04: // string
+				if (item->datatype & xplmType_Float) {
+					sprintf(item->stringval,"%f",XPLMGetDataf(item->dataref));
+					item->stringval_len = strlen(item->stringval);
+				} else if (item->datatype & xplmType_Double) {
+					sprintf(item->stringval,"%f",XPLMGetDatad(item->dataref));
+					item->stringval_len = strlen(item->stringval);
+				} else if (item->datatype & xplmType_Int) {
+					sprintf(item->stringval,"%d",XPLMGetDatai(item->dataref));
+					item->stringval_len = strlen(item->stringval);
+				} else if (item->datatype & xplmType_FloatArray) {
+					XPLMGetDatavf(item->dataref, &f, item->index, 1);
+					sprintf(item->stringval,"%f",f);
+					item->stringval_len = strlen(item->stringval);
+				} else if (item->datatype & xplmType_IntArray) {
+					XPLMGetDatavi(item->dataref, &i, item->index, 1);
+					sprintf(item->stringval,"%d",i);
+					item->stringval_len = strlen(item->stringval);
+				} else if (item->datatype & xplmType_Data) {
+					int arrlength = XPLMGetDatab(item->dataref, NULL, 0, 0);
+					int string_len = arrlength - item->index;
+					if (string_len>STRING_MAX_LEN) {
+						string_len = STRING_MAX_LEN;
+					}
+					if (string_len > 0) {
+						item->stringval_len = string_len;
+						XPLMGetDatab(item->dataref,item->stringval,item->index,string_len);
+					} else {
+						item->stringval_len = 0;
+					}
+				} else break;
+				if (item->stringval_len != item->stringval_remote_len || memcmp(item->stringval,item->stringval_remote,item->stringval_len)) {
+					printf("change: %s = %s\n",item->name, item->stringval);
+					display("Update %s = %s",item->name, item->stringval);
+				}
+				break;
 			}
 		}
 	}
@@ -350,7 +411,7 @@ void TeensyControls_output(float elapsed, int flags)
 {
 	teensy_t *t;
 	item_t *item;
-	uint8_t buf[10], enable_state=2, en;
+	uint8_t buf[64], enable_state=2, en;
 	int32_t i32;
 
 	if (flags == 1) {
@@ -371,6 +432,7 @@ void TeensyControls_output(float elapsed, int flags)
 		if (en == 1) printf("Output: enable and send IDs\n");
 		if (en == 3) printf("Output: disable\n");
 		if (!output_data(t, buf, 4)) break;
+		if (t->frames_without_id++ <= ID_FRAME_TIMEOUT) break;  // don't send data until 5 frames after the last received id
 
 		for (item = t->items; item; item = item->next) {
 			if (item->type == 1 && item->intval != item->intval_remote) {
@@ -404,6 +466,31 @@ void TeensyControls_output(float elapsed, int flags)
 				buf[9] = (i32 >> 24) & 255;
 				if (!output_data(t, buf, 10)) break;
 				item->floatval_remote = item->floatval;
+			} else if (item->type == 4) {
+				int update = item->stringval_len != item->stringval_remote_len;
+				if (update) {
+//					printf("String update on item %s due to length change. Old value: %d, New value: %d\n",
+//						item->name, item->stringval_remote_len, item->stringval_len);
+				} else {
+					update = memcmp(item->stringval, item->stringval_remote,STRING_MAX_LEN);
+					if (update) {
+//						printf("String update on item %s due to data change. Old data: %s, New data: %s\n",
+//							item->name, item->stringval_remote, item->stringval);
+					}
+				}
+				if (update) {
+					printf("output: %s = %s\n", item->name, item->stringval);
+					buf[0] = item->stringval_len+6;
+					buf[1] = 2;
+					buf[2] = item->id & 255;
+					buf[3] = item->id >> 8;
+					buf[4] = 4;
+					buf[5] = 0;
+					memcpy(buf+6,item->stringval,item->stringval_len);
+					if (!output_data(t, buf, 64)) break;
+					memcpy(item->stringval_remote, item->stringval, item->stringval_len);
+					item->stringval_remote_len = item->stringval_len;
+				}
 			}
 		}
 		output_flush(t);

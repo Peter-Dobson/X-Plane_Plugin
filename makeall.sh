@@ -50,7 +50,7 @@ OSXSDK=~/src/osxcross/target/SDK/MacOSX10.10.sdk
 set -x
 
 # set name and location of output directory
-TARGETDIR=target/TeensyPlugin
+TARGETDIR=target/TeensyControls
 
 # create output directory structure
 rm -rf $TARGETDIR
@@ -81,5 +81,9 @@ OS=MACOSX CC=o64-clang SDK=$OSXSDK TARGET=$TARGETDIR/mac.xpl make
 # clean up
 make clean
 
-rm -f target/TeensyPlugin.zip
-zip -r target/TeensyPlugin target/TeensyPlugin/*
+rm -f target/TeensyControls.zip
+cd target
+zip -r TeensyControls TeensyControls/*
+cd ..
+
+./cp_win32.sh

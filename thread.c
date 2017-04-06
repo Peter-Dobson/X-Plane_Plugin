@@ -91,12 +91,11 @@ int thread_start(void (*function)(void*), void *arg)
 // "_timeout" not quite POSIX...
 int pthread_cond_wait_timeout(pthread_cond_t *cv, pthread_mutex_t *external_mutex, DWORD msec)
 {
-	DWORD result;
 	EnterCriticalSection (&cv->lock);
 	cv->count++;
 	LeaveCriticalSection (&cv->lock);
 	LeaveCriticalSection (external_mutex);
-	result = WaitForSingleObject(cv->event, msec);
+	WaitForSingleObject(cv->event, msec);
 	EnterCriticalSection(&cv->lock);
 	cv->count--;
 	LeaveCriticalSection(&cv->lock);

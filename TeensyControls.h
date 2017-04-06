@@ -7,8 +7,10 @@
 #include <fcntl.h>
 #include <time.h>
 
+#define TEENSYCONTROLS_VERSION "1.3"
+
 //#define USE_PRINTF_DEBUG
-//#define PRINTF_ADDR "10.0.0.123"
+#define PRINTF_ADDR "10.0.0.133"
 //#define PRINTF_ADDR "127.0.0.1"
 
 #if defined(MACOSX)
@@ -101,6 +103,7 @@ typedef struct {
 
 #endif
 
+#define STRING_MAX_LEN 58
 
 
 typedef struct item_struct {
@@ -119,6 +122,12 @@ typedef struct item_struct {
 	int32_t intval_remote;	// int value, as exists on Teensy
 	float floatval;		// float value, most recent
 	float floatval_remote;	// float value, as exists on Teensy
+	int stringval_len;      // length of most recent string;
+	char  stringval[STRING_MAX_LEN]; // string value, most recent
+	char  dummy;             // null char to terminate string
+	int stringval_remote_len; // length of remote string
+	char  stringval_remote[STRING_MAX_LEN]; // string value, as exists on Teensy
+	char  dummy2;           // null char to terminate string
 	int changed_by_teensy;	// non-zero if teensy changed data, not yet written to xplane
 	struct item_struct *prev;
 	struct item_struct *next;
@@ -126,6 +135,7 @@ typedef struct item_struct {
 
 #define INPUT_BUFSIZE 160
 #define OUTPUT_BUFSIZE 50
+#define ID_FRAME_TIMEOUT 5  // number of frames that 
 
 typedef struct teensy_struct {
 	usb_t usb;
@@ -152,6 +162,7 @@ typedef struct teensy_struct {
 	uint8_t expect_fragment_id;
 	uint8_t *input_packet_ptr;
 	int32_t input_packet_bytes_missing;
+	uint32_t frames_without_id;
 	struct teensy_struct *next;
 } teensy_t;
 

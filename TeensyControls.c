@@ -32,8 +32,14 @@ PLUGIN_API int XPluginStart(char *name, char *sig, char *desc)
 
 	TeensyControls_printf_init();
 	strcpy(name, "TeensyControls");
-	strcpy(sig, "pjrc.TeensyControls");
-	strcpy(desc, "Teensy-based USB Devices For X-Plane");
+	strcpy(sig, "pjrc.TeensyControls.v" TEENSYCONTROLS_VERSION);
+#ifndef USE_PRINTF_DEBUG
+	strcpy(name, "TeensyControls v" TEENSYCONTROLS_VERSION);
+	strcpy(desc, "Teensy-based USB Devices For X-Plane v" TEENSYCONTROLS_VERSION);
+#else
+	strcpy(name, "TeensyControls v" TEENSYCONTROLS_VERSION " DEBUG");
+	strcpy(desc, "Teensy-based USB Devices For X-Plane v" TEENSYCONTROLS_VERSION " - DEBUG OUTPUT TO " PRINTF_ADDR);
+#endif
 	if (!TeensyControls_usb_init()) return 0;
 	XPLMRegisterFlightLoopCallback(main_callback, -1, NULL);
 	pmenu = XPLMFindPluginsMenu();

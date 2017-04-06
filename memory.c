@@ -185,6 +185,7 @@ void TeensyControls_new_item(teensy_t *t, int id, int type, const char *name, in
 	int index, datawritable = 0;
 
 	if (!t || !name || namelen >= 1024) return;
+	t->frames_without_id=0;
 	memcpy(str, name, namelen);
 	str[namelen] = 0;
 	index = parse_array_index(str);
@@ -209,7 +210,7 @@ void TeensyControls_new_item(teensy_t *t, int id, int type, const char *name, in
 	} else {
 		item = (item_t *)malloc(sizeof(item_t));
 		if (!item) return;
-		printf("new item, id = %d, type = %d, name = %s\n", id, type, name);
+		printf("new item, id = %d, type = %d, name = %s, dataref = %p\n", id, type, name, dataref);
 		memset(item, 0, sizeof(item_t));
 		item->id = id;
 		item->type = type;
