@@ -37,11 +37,11 @@ There is a compiled version of the plugin in the `target` folder of this reposit
        | |--- lin.xpl
        | |--- win.xpl
        |
-	   |-+- 64
-	   | |--- lin.xpl
-	   | |--- win.xpl
-	   |
-	   |--- mac.xpl
+       |-+- 64
+       | |--- lin.xpl
+       | |--- win.xpl
+       |
+       |--- mac.xpl
 ```
 
 
