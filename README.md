@@ -32,7 +32,7 @@ There is a compiled version of the plugin in the `target` folder of this reposit
    |--- ...
    |-+- plugins
    |-+- ...
-     |-+- TeensyPlugin
+     |-+- TeensyControls
        |-+- 32
        | |--- lin.xpl
        | |--- win.xpl
