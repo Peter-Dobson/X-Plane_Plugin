@@ -26,7 +26,7 @@ Binaries
 There is a compiled version of the plugin in the `target` folder of this repository. You can download it as either a zip file or as a directory. Copy it to your X-Plane's `Resources\plugin` folder. After this, you should have the following folder structure:
 
 ```
--+- X-Plane 10
+-+- X-Plane 11
  |--- ...
  |-+- Resources
    |--- ...
